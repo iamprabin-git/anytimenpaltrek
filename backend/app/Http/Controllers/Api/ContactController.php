@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactInquiry;
+use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,6 +39,12 @@ class ContactController extends Controller
             "{$validated['name']} sent a message: {$subject}",
             '/agent/inquiries',
             'inquiry'
+        );
+
+        EmailNotifier::contactConfirmation(
+            $validated['email'],
+            $validated['name'],
+            $validated['subject'] ?? null,
         );
 
         return response()->json([

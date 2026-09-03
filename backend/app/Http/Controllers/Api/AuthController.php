@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\CustomerContactRules;
+use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use App\Support\PasswordResetService;
 use Illuminate\Http\JsonResponse;
@@ -52,6 +53,8 @@ class AuthController extends Controller
             '/agent/users',
             'user'
         );
+
+        EmailNotifier::registrationPending($user);
 
         return response()->json([
             'message' => 'Registration successful. An agent will approve your account shortly.',

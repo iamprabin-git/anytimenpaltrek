@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\Agent;
 
 use App\Http\Controllers\Controller;
 use App\Models\PendingChangeRequest;
+use App\Models\User;
 use App\Support\ChangeActionApplier;
 use App\Support\ChangeApproval;
+use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -58,6 +60,8 @@ class PendingChangeController extends Controller
             'review_note' => $request->input('review_note'),
         ]);
 
+        self::notifyAfterApproval($pendingChange);
+
         if ($pendingChange->requester) {
             NotificationDispatcher::notifyUser(
                 $pendingChange->requester,
@@ -109,5 +113,72 @@ class PendingChangeController extends Controller
             'message' => 'Change rejected.',
             'change' => ChangeApproval::format($pendingChange->fresh(['requester', 'reviewer'])),
         ]);
+    }
+
+    private static function notifyAfterApproval(PendingChangeRequest $pendingChange): void
+    {
+        $targetId = $pendingChange->target_id;
+
+        match ($pendingChange->action) {
+            'users.create' => self::notifyCustomerCreated($pendingChange),
+            'users.approve' => self::notifyCustomerApproved($targetId),
+            'users.reject' => self::notifyCustomerRejected($targetId),
+            default => null,
+        };
+    }
+
+    private static function notifyCustomerCreated(PendingChangeRequest $pendingChange): void
+    {
+        $email = $pendingChange->payload['email'] ?? null;
+        if (! $email) {
+            return;
+        }
+
+        $user = User::query()->where('email', $email)->latest('id')->first();
+        if ($user) {
+            EmailNotifier::customerWelcome($user);
+        }
+    }
+
+    private static function notifyCustomerApproved(?int $userId): void
+    {
+        if (! $userId) {
+            return;
+        }
+
+        $user = User::find($userId);
+        if (! $user) {
+            return;
+        }
+
+        NotificationDispatcher::notifyUser(
+            $user,
+            'Account approved',
+            'Your account has been approved. You can now sign in and book trips.',
+            '/account',
+            'user'
+        );
+    }
+
+    private static function notifyCustomerRejected(?int $userId): void
+    {
+        if (! $userId) {
+            return;
+        }
+
+        $user = User::find($userId);
+        if (! $user) {
+            return;
+        }
+
+        NotificationDispatcher::notifyUser(
+            $user,
+            'Registration not approved',
+            'Your account registration could not be approved. Please contact us if you need assistance.',
+            '/login',
+            'user',
+            email: false,
+        );
+        EmailNotifier::accountRejected($user);
     }
 }

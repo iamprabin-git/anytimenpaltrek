@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -94,6 +95,8 @@ class OAuthController extends Controller
                 '/agent/users',
                 'user'
             );
+
+            EmailNotifier::registrationPending($user);
 
             if ($portal === 'user' && $mode === 'register') {
                 return $this->frontendSuccess($portal, null, null, 'Registration successful. An agent will approve your account shortly.');

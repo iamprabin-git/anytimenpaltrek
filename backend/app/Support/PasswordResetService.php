@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\User;
 use App\Notifications\ResetPasswordNotification;
+use App\Support\EmailNotifier;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 
@@ -41,6 +42,8 @@ class PasswordResetService
                 }
 
                 $user->forceFill(['password' => $password])->save();
+
+                EmailNotifier::passwordResetSuccess($user, self::resolvePortal($user, $portal));
             }
         );
     }

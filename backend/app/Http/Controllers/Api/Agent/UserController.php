@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\ChangeApproval;
 use App\Support\CrmCustomerTimeline;
 use App\Support\CustomerUserManager;
+use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -88,6 +89,8 @@ class UserController extends Controller
                 }
 
                 $user->save();
+
+                EmailNotifier::customerWelcome($user);
 
                 return response()->json([
                     'message' => 'Customer created successfully.',
@@ -180,6 +183,16 @@ class UserController extends Controller
             "Reject customer {$user->name}",
             function () use ($user) {
                 $user->update(['status' => User::STATUS_INACTIVE]);
+
+                NotificationDispatcher::notifyUser(
+                    $user,
+                    'Registration not approved',
+                    'Your account registration could not be approved. Please contact us if you need assistance.',
+                    '/login',
+                    'user',
+                    email: false,
+                );
+                EmailNotifier::accountRejected($user);
 
                 return response()->json([
                     'message' => 'User rejected successfully.',

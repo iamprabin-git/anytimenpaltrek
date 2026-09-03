@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\AgentPermissions;
+use App\Support\EmailNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -46,6 +47,8 @@ class AgentController extends Controller
             'status' => User::STATUS_ACTIVE,
             'created_by' => $request->user()->id,
         ]);
+
+        EmailNotifier::agentWelcome($agent);
 
         return response()->json([
             'message' => 'Agent created successfully.',
