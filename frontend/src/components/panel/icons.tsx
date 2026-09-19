@@ -24,7 +24,9 @@ export type PanelIconName =
   | "building"
   | "layout"
   | "layers"
-  | "menu";
+  | "menu"
+  | "help"
+  | "close";
 
 export const panelIcons: Record<PanelIconName, IconComponent> = {
   dashboard: ({ className }) => (
@@ -129,6 +131,16 @@ export const panelIcons: Record<PanelIconName, IconComponent> = {
   menu: ({ className }) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4 7h16M4 12h16M4 17h16" />
+    </svg>
+  ),
+  help: ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9.09 9a3 3 0 115.82 1c0 2-3 2-3 4m.08 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z" />
+    </svg>
+  ),
+  close: ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M6 18L18 6M6 6l12 12" />
     </svg>
   ),
 };

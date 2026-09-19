@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Support\ChangeApproval;
 use App\Support\CrmCustomerTimeline;
 use App\Support\CustomerUserManager;
+use App\Support\BrevoMarketing;
+use App\Support\BrevoSettings;
 use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use Illuminate\Http\JsonResponse;
@@ -90,7 +92,11 @@ class UserController extends Controller
 
                 $user->save();
 
-                EmailNotifier::customerWelcome($user);
+                EmailNotifier::customerWelcome($user, $request->user()->name);
+
+                if (BrevoSettings::isConfigured() && BrevoSettings::shouldSyncContacts()) {
+                    BrevoMarketing::syncContact($user);
+                }
 
                 return response()->json([
                     'message' => 'Customer created successfully.',
@@ -159,6 +165,11 @@ class UserController extends Controller
                     '/account',
                     'user'
                 );
+                EmailNotifier::accountApproved($user);
+
+                if (BrevoSettings::isConfigured() && BrevoSettings::shouldSyncContacts()) {
+                    BrevoMarketing::syncContact($user->fresh());
+                }
 
                 return response()->json([
                     'message' => 'User approved successfully.',
@@ -189,8 +200,7 @@ class UserController extends Controller
                     'Registration not approved',
                     'Your account registration could not be approved. Please contact us if you need assistance.',
                     '/login',
-                    'user',
-                    email: false,
+                    'user'
                 );
                 EmailNotifier::accountRejected($user);
 

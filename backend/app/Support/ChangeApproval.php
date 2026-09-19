@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\PendingChangeRequest;
 use App\Models\User;
 use App\Support\NotificationDispatcher;
+use App\Support\EmailNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -51,6 +52,8 @@ class ChangeApproval
             '/admin/roles',
             'approval'
         );
+
+        EmailNotifier::changeSubmitted($pending, $agent);
 
         return $pending->load('requester:id,name,email,agent_role');
     }

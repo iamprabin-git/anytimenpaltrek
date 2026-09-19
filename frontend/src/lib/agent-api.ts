@@ -506,6 +506,18 @@ export interface CrmSummary {
   segments: Record<string, string>;
   campaign_types: Record<string, string>;
   channels?: Record<string, string>;
+  brevo?: BrevoIntegrationStatus;
+}
+
+export interface BrevoIntegrationStatus {
+  enabled: boolean;
+  configured: boolean;
+  api_key_set: boolean;
+  sender_email: string | null;
+  sender_name: string;
+  list_id: number | null;
+  sync_contacts: boolean;
+  provider: string;
 }
 
 export interface CrmCampaign {

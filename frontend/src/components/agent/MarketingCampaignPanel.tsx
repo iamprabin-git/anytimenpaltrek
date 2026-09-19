@@ -160,9 +160,24 @@ export default function MarketingCampaignPanel({
   }
 
   const channelLabels = summary?.channels;
+  const brevo = summary?.brevo;
+  const usesEmail = !filterChannel || filterChannel === "email" || defaultChannels.includes("email");
 
   return (
     <div>
+      {usesEmail && brevo && (
+        <div className={`mb-6 rounded-xl border px-4 py-3 text-sm ${brevo.configured ? "border-green-200 bg-green-50 text-green-900" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
+          <p className="font-medium">
+            Brevo email marketing: {brevo.configured ? "Connected" : "Not configured"}
+          </p>
+          <p className="mt-1 opacity-90">
+            {brevo.configured
+              ? `Campaign emails are sent through Brevo from ${brevo.sender_email || brevo.sender_name}.`
+              : "CRM email campaigns will use Laravel mail until an admin enables Brevo in Company Settings."}
+          </p>
+        </div>
+      )}
+
       <div className="mb-8 flex flex-wrap justify-between gap-4">
         <div>
           <h1 className="panel-title mb-2">{title}</h1>

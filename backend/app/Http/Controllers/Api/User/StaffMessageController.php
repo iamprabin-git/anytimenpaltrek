@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactInquiry;
+use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -52,6 +53,9 @@ class StaffMessageController extends Controller
             '/agent/inquiries',
             'inquiry'
         );
+
+        EmailNotifier::staffMessageSent($user, $validated['subject']);
+        EmailNotifier::staffMessage($user->name, $validated['subject'], $validated['message']);
 
         return response()->json([
             'message' => 'Your message was sent to our staff team.',

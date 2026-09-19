@@ -36,13 +36,29 @@ class ResetPasswordNotification extends Notification
             : $notifiable->email;
 
         $url = $frontendUrl.$path.'?token='.urlencode($this->token).'&email='.urlencode((string) $email);
+        $portalLabel = ucfirst($this->portal === 'user' ? 'Customer' : $this->portal);
 
         return (new MailMessage)
             ->subject(EmailBranding::subject('Reset your password'))
-            ->line('You are receiving this email because we received a password reset request for your account.')
-            ->action('Reset Password', $url)
-            ->line('This password reset link will expire in '.config('auth.passwords.users.expire').' minutes.')
-            ->line('If you did not request a password reset, no further action is required.')
-            ->salutation(EmailBranding::salutation());
+            ->markdown('mail.transactional', [
+                'headline' => 'Reset your password',
+                'greeting' => $notifiable->name ? "Hello {$notifiable->name}," : null,
+                'intro' => 'We received a request to reset the password for your account.',
+                'lines' => [
+                    'Click the button below to choose a new password. This link is valid for a limited time.',
+                    'If you did not request a password reset, you can safely ignore this email.',
+                ],
+                'details' => [
+                    'Account' => (string) $email,
+                    'Portal' => $portalLabel,
+                    'Expires in' => config('auth.passwords.users.expire').' minutes',
+                ],
+                'actionText' => 'Reset password',
+                'actionUrl' => $url,
+                'footerNote' => null,
+                'companyName' => EmailBranding::companyName(),
+                'supportEmail' => EmailBranding::supportEmail(),
+                'supportPhone' => EmailBranding::supportPhone(),
+            ]);
     }
 }

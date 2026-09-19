@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Support\BookingPresenter;
+use App\Support\EmailNotifier;
 use App\Support\ImageStorage;
 use App\Support\NotificationDispatcher;
 use App\Support\PackageAvailability;
@@ -281,6 +282,9 @@ class PaymentController extends Controller
             );
         }
 
+        EmailNotifier::bookingSubmitted($booking);
+        EmailNotifier::staffBookingSubmitted($booking);
+
         NotificationDispatcher::notifyAdmins(
             'Booking awaiting approval',
             "{$booking->customer_name} submitted a {$method} booking for {$packageTitle}.",
@@ -316,6 +320,9 @@ class PaymentController extends Controller
                 'booking'
             );
         }
+
+        EmailNotifier::paymentConfirmed($booking);
+        EmailNotifier::staffPaymentReceived($booking);
 
         NotificationDispatcher::notifyAdmins(
             'New paid booking',

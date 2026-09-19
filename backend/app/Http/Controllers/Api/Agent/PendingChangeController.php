@@ -7,6 +7,8 @@ use App\Models\PendingChangeRequest;
 use App\Models\User;
 use App\Support\ChangeActionApplier;
 use App\Support\ChangeApproval;
+use App\Support\BrevoMarketing;
+use App\Support\BrevoSettings;
 use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use Illuminate\Http\JsonResponse;
@@ -70,6 +72,7 @@ class PendingChangeController extends Controller
                 '/agent/approvals',
                 'approval'
             );
+            EmailNotifier::changeApproved($pendingChange->requester, $pendingChange);
         }
 
         return response()->json([
@@ -107,6 +110,11 @@ class PendingChangeController extends Controller
                 '/agent/approvals',
                 'approval'
             );
+            EmailNotifier::changeRejected(
+                $pendingChange->requester,
+                $pendingChange,
+                $validated['review_note'] ?? null
+            );
         }
 
         return response()->json([
@@ -137,6 +145,10 @@ class PendingChangeController extends Controller
         $user = User::query()->where('email', $email)->latest('id')->first();
         if ($user) {
             EmailNotifier::customerWelcome($user);
+
+            if (BrevoSettings::isConfigured() && BrevoSettings::shouldSyncContacts()) {
+                BrevoMarketing::syncContact($user);
+            }
         }
     }
 
@@ -158,6 +170,11 @@ class PendingChangeController extends Controller
             '/account',
             'user'
         );
+        EmailNotifier::accountApproved($user);
+
+        if (BrevoSettings::isConfigured() && BrevoSettings::shouldSyncContacts()) {
+            BrevoMarketing::syncContact($user);
+        }
     }
 
     private static function notifyCustomerRejected(?int $userId): void
@@ -176,8 +193,7 @@ class PendingChangeController extends Controller
             'Registration not approved',
             'Your account registration could not be approved. Please contact us if you need assistance.',
             '/login',
-            'user',
-            email: false,
+            'user'
         );
         EmailNotifier::accountRejected($user);
     }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\BrevoMarketing;
+use App\Support\BrevoSettings;
 use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use Illuminate\Http\RedirectResponse;
@@ -97,6 +99,11 @@ class OAuthController extends Controller
             );
 
             EmailNotifier::registrationPending($user);
+            EmailNotifier::staffNewRegistration($user, 'Google');
+
+            if (BrevoSettings::isConfigured() && BrevoSettings::shouldSyncContacts()) {
+                BrevoMarketing::syncContact($user);
+            }
 
             if ($portal === 'user' && $mode === 'register') {
                 return $this->frontendSuccess($portal, null, null, 'Registration successful. An agent will approve your account shortly.');

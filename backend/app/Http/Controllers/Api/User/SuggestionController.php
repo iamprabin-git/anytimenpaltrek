@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\UserSuggestion;
+use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -49,6 +50,9 @@ class SuggestionController extends Controller
             '/agent/inquiries',
             'inquiry'
         );
+
+        EmailNotifier::suggestionReceived($user, $validated['subject']);
+        EmailNotifier::staffSuggestion($user->name, $validated['subject']);
 
         return response()->json([
             'message' => 'Thank you for your suggestion.',

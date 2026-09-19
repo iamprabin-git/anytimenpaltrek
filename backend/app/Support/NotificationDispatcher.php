@@ -12,18 +12,12 @@ class NotificationDispatcher
         string $message,
         ?string $href = null,
         string $category = 'system',
-        bool $email = true,
+        bool $email = false,
     ): void {
         User::query()
             ->where('role', User::ROLE_ADMIN)
             ->where('status', User::STATUS_ACTIVE)
-            ->each(function (User $user) use ($title, $message, $href, $category, $email) {
-                $user->notify(new PanelNotification($title, $message, $href, $category));
-
-                if ($email) {
-                    EmailNotifier::mirrorPanel($user, $title, $message, $href);
-                }
-            });
+            ->each(fn (User $user) => $user->notify(new PanelNotification($title, $message, $href, $category)));
     }
 
     public static function notifyAgentsWithPermission(
@@ -32,20 +26,14 @@ class NotificationDispatcher
         string $message,
         ?string $href = null,
         string $category = 'system',
-        bool $email = true,
+        bool $email = false,
     ): void {
         User::query()
             ->where('role', User::ROLE_AGENT)
             ->where('status', User::STATUS_ACTIVE)
             ->get()
             ->filter(fn (User $user) => $user->hasAgentPermission($permission))
-            ->each(function (User $user) use ($title, $message, $href, $category, $email) {
-                $user->notify(new PanelNotification($title, $message, $href, $category));
-
-                if ($email) {
-                    EmailNotifier::mirrorPanel($user, $title, $message, $href);
-                }
-            });
+            ->each(fn (User $user) => $user->notify(new PanelNotification($title, $message, $href, $category)));
     }
 
     public static function notifyUser(
@@ -54,12 +42,8 @@ class NotificationDispatcher
         string $message,
         ?string $href = null,
         string $category = 'system',
-        bool $email = true,
+        bool $email = false,
     ): void {
         $user->notify(new PanelNotification($title, $message, $href, $category));
-
-        if ($email) {
-            EmailNotifier::mirrorPanel($user, $title, $message, $href);
-        }
     }
 }

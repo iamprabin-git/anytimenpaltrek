@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Support\CrmCampaignService;
 use App\Support\CrmCustomerTimeline;
 use App\Support\CustomerUserManager;
+use App\Support\BrevoSettings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -56,6 +57,7 @@ class CrmController extends Controller
             'segments' => CrmCampaignService::segments(),
             'campaign_types' => CrmCampaignService::campaignTypes(),
             'channels' => CrmCampaignService::channels(),
+            'brevo' => BrevoSettings::status(),
         ]);
     }
 

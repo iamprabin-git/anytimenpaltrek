@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Support\BookingExporter;
 use App\Support\BookingPresenter;
 use App\Support\BookingQuery;
+use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -63,6 +64,8 @@ class BookingController extends Controller
             );
         }
 
+        EmailNotifier::bookingConfirmed($booking);
+
         return response()->json([
             'message' => 'Booking approved successfully.',
             'booking' => BookingPresenter::format($booking),
@@ -97,6 +100,8 @@ class BookingController extends Controller
                 'booking'
             );
         }
+
+        EmailNotifier::bookingRejected($booking);
 
         return response()->json([
             'message' => 'Booking rejected.',

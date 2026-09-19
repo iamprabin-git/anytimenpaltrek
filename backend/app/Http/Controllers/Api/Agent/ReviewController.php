@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Review;
 use App\Models\User;
 use App\Support\ChangeApproval;
+use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,6 +46,7 @@ class ReviewController extends Controller
                             '/',
                             'review'
                         );
+                        EmailNotifier::reviewApproved($customer, $review->fresh());
                     }
                 }
 
@@ -75,6 +77,7 @@ class ReviewController extends Controller
                             '/account',
                             'review'
                         );
+                        EmailNotifier::reviewRejected($customer, $review->fresh());
                     }
                 }
 

@@ -44,7 +44,7 @@ class CrmCampaignService
     {
         return [
             self::CHANNEL_IN_APP => 'In-app notification',
-            self::CHANNEL_EMAIL => 'Email marketing',
+            self::CHANNEL_EMAIL => BrevoSettings::isConfigured() ? 'Email marketing (Brevo)' : 'Email marketing',
             self::CHANNEL_WHATSAPP => 'WhatsApp marketing',
         ];
     }
@@ -186,11 +186,25 @@ class CrmCampaignService
         }
 
         try {
+            if (BrevoSettings::isConfigured()) {
+                $result = BrevoMarketing::sendMarketingEmail($recipient, $subject, $message, $campaign->id);
+
+                self::recordDelivery($campaign, $recipient, $agent, self::CHANNEL_EMAIL, 'sent', [
+                    'email' => $recipient->email,
+                    'subject' => $subject,
+                    'provider' => $result['provider'],
+                    'message_id' => $result['message_id'],
+                ], $subject, $message);
+
+                return ['counted' => true, 'status' => 'sent'];
+            }
+
             $recipient->notify(new MarketingCampaignNotification($subject, $message));
 
             self::recordDelivery($campaign, $recipient, $agent, self::CHANNEL_EMAIL, 'sent', [
                 'email' => $recipient->email,
                 'subject' => $subject,
+                'provider' => 'laravel_mail',
             ], $subject, $message);
 
             return ['counted' => true, 'status' => 'sent'];

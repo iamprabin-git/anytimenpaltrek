@@ -21,7 +21,7 @@ class ContactController extends Controller
             'message' => 'required|string|max:5000',
         ]);
 
-        ContactInquiry::create([
+        $inquiry = ContactInquiry::create([
             ...$validated,
             'user_id' => $request->user()?->id,
         ]);
@@ -45,7 +45,9 @@ class ContactController extends Controller
             $validated['email'],
             $validated['name'],
             $validated['subject'] ?? null,
+            $validated['message'],
         );
+        EmailNotifier::staffContactInquiry($inquiry);
 
         return response()->json([
             'message' => 'Thank you! We will get back to you shortly.',

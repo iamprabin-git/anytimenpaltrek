@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Support\EmailBranding;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -25,13 +26,20 @@ class MarketingCampaignNotification extends Notification
     {
         $lines = preg_split("/\r\n|\r|\n/", trim($this->message)) ?: [];
 
-        $mail = (new MailMessage)
-            ->subject($this->subject);
-
-        foreach ($lines as $line) {
-            $mail->line($line);
-        }
-
-        return $mail->line('Thank you for choosing us for your next adventure.');
+        return (new MailMessage)
+            ->subject(EmailBranding::subject($this->subject))
+            ->markdown('mail.transactional', [
+                'headline' => $this->subject,
+                'greeting' => $notifiable->name ? "Hello {$notifiable->name}," : null,
+                'intro' => 'We have an update from '.EmailBranding::companyName().' for you.',
+                'lines' => $lines,
+                'details' => [],
+                'actionText' => 'Visit your account',
+                'actionUrl' => EmailBranding::accountUrl(),
+                'footerNote' => 'Thank you for choosing us for your next adventure.',
+                'companyName' => EmailBranding::companyName(),
+                'supportEmail' => EmailBranding::supportEmail(),
+                'supportPhone' => EmailBranding::supportPhone(),
+            ]);
     }
 }

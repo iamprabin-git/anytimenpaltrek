@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Review;
+use App\Support\EmailNotifier;
 use App\Support\ImageStorage;
 use App\Support\NotificationDispatcher;
 use Illuminate\Http\JsonResponse;
@@ -89,6 +90,9 @@ class ReviewController extends Controller
             '/agent/reviews',
             'review'
         );
+
+        EmailNotifier::reviewSubmitted($user, $review);
+        EmailNotifier::staffReviewSubmitted($user, $review);
 
         return response()->json([
             'message' => 'Thank you! Your review has been submitted and will appear after approval.',

@@ -269,6 +269,49 @@ export async function updateAdminCompanySettingsForm(formData: FormData) {
   return data as { message: string; settings: CompanySettings };
 }
 
+export interface BrevoSettingsPayload {
+  enabled?: boolean;
+  list_id?: number | null;
+  sender_email?: string | null;
+  sender_name?: string | null;
+  sync_contacts?: boolean;
+}
+
+export interface BrevoSettingsResponse {
+  brevo: BrevoIntegrationStatus;
+  message?: string;
+  result?: { message_id: string | null; provider: string };
+}
+
+export interface BrevoIntegrationStatus {
+  enabled: boolean;
+  configured: boolean;
+  api_key_set: boolean;
+  sender_email: string | null;
+  sender_name: string;
+  list_id: number | null;
+  sync_contacts: boolean;
+  provider: string;
+}
+
+export async function getAdminBrevoSettings() {
+  return apiFetch<BrevoSettingsResponse>("/admin/brevo", undefined, "admin");
+}
+
+export async function updateAdminBrevoSettings(payload: BrevoSettingsPayload) {
+  return apiFetch<BrevoSettingsResponse>("/admin/brevo", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  }, "admin");
+}
+
+export async function testAdminBrevoConnection(email?: string) {
+  return apiFetch<BrevoSettingsResponse>("/admin/brevo/test", {
+    method: "POST",
+    body: JSON.stringify(email ? { email } : {}),
+  }, "admin");
+}
+
 export async function getAdminSiteContent(locale = "en") {
   return apiFetch<{ locale: string; content: SiteContentMap }>(`/admin/site-content?locale=${locale}`, undefined, "admin");
 }

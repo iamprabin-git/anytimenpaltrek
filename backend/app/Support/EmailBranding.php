@@ -43,4 +43,39 @@ class EmailBranding
 
         return str_starts_with($href, 'http') ? $href : self::frontendUrl().$href;
     }
+
+    public static function supportEmail(): string
+    {
+        $email = CompanySetting::current()->email;
+
+        return filled($email) ? (string) $email : 'info@anytimenepaltrek.com';
+    }
+
+    public static function supportPhone(): ?string
+    {
+        $phone = CompanySetting::current()->phone;
+
+        return filled($phone) ? (string) $phone : null;
+    }
+
+    public static function formatMoney(float|string|null $amount, ?string $currency = 'USD'): string
+    {
+        if ($amount === null || $amount === '') {
+            return '—';
+        }
+
+        $symbol = strtoupper((string) $currency) === 'USD' ? '$' : strtoupper((string) $currency).' ';
+
+        return $symbol.number_format((float) $amount, 2);
+    }
+
+    public static function accountUrl(): string
+    {
+        return self::frontendUrl().'/account';
+    }
+
+    public static function bookingsUrl(): string
+    {
+        return self::frontendUrl().'/account/bookings';
+    }
 }

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { PanelIcon, type PanelIconName } from "@/components/panel/icons";
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationButton from "@/components/NotificationButton";
+import PanelHelpButton from "@/components/PanelHelpButton";
 import PanelUserMenu from "@/components/PanelUserMenu";
 import {
   clearAuthSession,
@@ -165,6 +166,7 @@ export default function PanelShell({
               <PanelIcon name="home" className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">View Site</span>
             </Link>
+            <PanelHelpButton role={role} />
             <NotificationButton />
             <ThemeToggle />
             <PanelUserMenu

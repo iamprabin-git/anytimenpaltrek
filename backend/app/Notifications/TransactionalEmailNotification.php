@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Support\EmailBranding;
+use App\Support\EmailTemplate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -11,12 +12,8 @@ class TransactionalEmailNotification extends Notification
 {
     use Queueable;
 
-    /** @param  list<string>  $lines */
     public function __construct(
-        private readonly string $subject,
-        private readonly array $lines,
-        private readonly ?string $actionText = null,
-        private readonly ?string $actionUrl = null,
+        private readonly EmailTemplate $template,
         private readonly ?string $greetingName = null,
     ) {}
 
@@ -29,24 +26,22 @@ class TransactionalEmailNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $name = $this->greetingName ?? ($notifiable->name ?? null);
+        $details = array_filter($this->template->details, fn ($value) => $value !== null && $value !== '');
 
-        $mail = (new MailMessage)
-            ->subject(EmailBranding::subject($this->subject));
-
-        if ($name) {
-            $mail->greeting("Hello {$name}!");
-        }
-
-        foreach ($this->lines as $line) {
-            if ($line !== '') {
-                $mail->line($line);
-            }
-        }
-
-        if ($this->actionText && $this->actionUrl) {
-            $mail->action($this->actionText, $this->actionUrl);
-        }
-
-        return $mail->salutation(EmailBranding::salutation());
+        return (new MailMessage)
+            ->subject(EmailBranding::subject($this->template->subject))
+            ->markdown('mail.transactional', [
+                'headline' => $this->template->headline,
+                'greeting' => $name ? "Hello {$name}," : null,
+                'intro' => $this->template->intro,
+                'lines' => $this->template->lines,
+                'details' => $details,
+                'actionText' => $this->template->actionText,
+                'actionUrl' => $this->template->actionUrl,
+                'footerNote' => $this->template->footerNote,
+                'companyName' => EmailBranding::companyName(),
+                'supportEmail' => EmailBranding::supportEmail(),
+                'supportPhone' => EmailBranding::supportPhone(),
+            ]);
     }
 }

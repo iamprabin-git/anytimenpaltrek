@@ -62,6 +62,13 @@ class CompanySetting extends Model
                 'theme' => ThemeSettings::defaults(),
                 'role_permissions' => AgentPermissions::defaults(),
                 'payment_settings' => PaymentSettings::defaults(),
+                'brevo_settings' => [
+                    'enabled' => false,
+                    'list_id' => null,
+                    'sender_email' => null,
+                    'sender_name' => null,
+                    'sync_contacts' => true,
+                ],
                 'staff_contacts' => [
                     [
                         'name' => 'Customer Support',

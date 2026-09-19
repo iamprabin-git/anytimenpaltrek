@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Api\Admin\AgentController;
 use App\Http\Controllers\Api\Admin\CompanySettingController as AdminCompanySettingController;
+use App\Http\Controllers\Api\Admin\BrevoController as AdminBrevoController;
 use App\Http\Controllers\Api\Admin\RolePermissionController;
 use App\Http\Controllers\Api\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Api\Admin\SiteContentController as AdminSiteContentController;
@@ -92,6 +93,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/company-settings', [AdminCompanySettingController::class, 'show']);
         Route::put('/company-settings', [AdminCompanySettingController::class, 'update']);
         Route::post('/company-settings', [AdminCompanySettingController::class, 'update']);
+        Route::get('/brevo', [AdminBrevoController::class, 'show']);
+        Route::put('/brevo', [AdminBrevoController::class, 'update']);
+        Route::post('/brevo/test', [AdminBrevoController::class, 'test']);
         Route::get('/site-content', [AdminSiteContentController::class, 'show']);
         Route::put('/site-content', [AdminSiteContentController::class, 'update']);
         Route::post('/site-content/page_sections', [AdminSiteContentController::class, 'updatePageSections']);

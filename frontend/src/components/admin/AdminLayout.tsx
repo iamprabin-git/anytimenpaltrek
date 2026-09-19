@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import MediaImage from "@/components/MediaImage";
 import NotificationButton from "@/components/NotificationButton";
+import PanelHelpButton from "@/components/PanelHelpButton";
 import PanelUserMenu from "@/components/PanelUserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import { PanelIcon } from "@/components/panel/icons";
@@ -219,6 +220,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <PanelIcon name="home" className="h-4 w-4" />
               View Site
             </Link>
+            <PanelHelpButton role="admin" variant="admin" />
             <NotificationButton />
             <ThemeToggle />
             <PanelUserMenu

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\CustomerContactRules;
+use App\Support\BrevoMarketing;
+use App\Support\BrevoSettings;
 use App\Support\EmailNotifier;
 use App\Support\NotificationDispatcher;
 use App\Support\PasswordResetService;
@@ -55,6 +57,11 @@ class AuthController extends Controller
         );
 
         EmailNotifier::registrationPending($user);
+        EmailNotifier::staffNewRegistration($user, 'Website');
+
+        if (BrevoSettings::isConfigured() && BrevoSettings::shouldSyncContacts()) {
+            BrevoMarketing::syncContact($user);
+        }
 
         return response()->json([
             'message' => 'Registration successful. An agent will approve your account shortly.',

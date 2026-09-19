@@ -48,7 +48,7 @@ class AgentController extends Controller
             'created_by' => $request->user()->id,
         ]);
 
-        EmailNotifier::agentWelcome($agent);
+        EmailNotifier::agentWelcome($agent, $request->user()->name);
 
         return response()->json([
             'message' => 'Agent created successfully.',

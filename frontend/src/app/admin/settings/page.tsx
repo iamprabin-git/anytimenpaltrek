@@ -3,8 +3,12 @@
 import { useEffect, useState } from "react";
 import { LogoUploadField } from "@/components/ImageUploadField";
 import {
+  getAdminBrevoSettings,
   getAdminCompanySettings,
+  testAdminBrevoConnection,
+  updateAdminBrevoSettings,
   updateAdminCompanySettingsForm,
+  type BrevoIntegrationStatus,
   type CompanySettings,
 } from "@/lib/admin-api";
 
@@ -14,12 +18,18 @@ export default function AdminSettingsPage() {
   const [error, setError] = useState("");
   const [dynamicJson, setDynamicJson] = useState("{}");
   const [saving, setSaving] = useState(false);
+  const [brevo, setBrevo] = useState<BrevoIntegrationStatus | null>(null);
+  const [brevoSaving, setBrevoSaving] = useState(false);
+  const [brevoTesting, setBrevoTesting] = useState(false);
+  const [brevoMessage, setBrevoMessage] = useState("");
+  const [brevoError, setBrevoError] = useState("");
 
   useEffect(() => {
     getAdminCompanySettings().then((data) => {
       setSettings(data);
       setDynamicJson(JSON.stringify(data.dynamic_settings || {}, null, 2));
     }).catch(() => {});
+    getAdminBrevoSettings().then((data) => setBrevo(data.brevo)).catch(() => {});
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -79,6 +89,49 @@ export default function AdminSettingsPage() {
       setError(err instanceof Error ? err.message : "Failed to save settings.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleBrevoSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBrevoSaving(true);
+    setBrevoMessage("");
+    setBrevoError("");
+
+    const formData = new FormData(e.currentTarget);
+
+    try {
+      const result = await updateAdminBrevoSettings({
+        enabled: formData.get("brevo_enabled") === "on",
+        list_id: String(formData.get("brevo_list_id") || "").trim()
+          ? Number(formData.get("brevo_list_id"))
+          : null,
+        sender_email: String(formData.get("brevo_sender_email") || "").trim() || null,
+        sender_name: String(formData.get("brevo_sender_name") || "").trim() || null,
+        sync_contacts: formData.get("brevo_sync_contacts") === "on",
+      });
+      setBrevo(result.brevo);
+      setBrevoMessage(result.message || "Brevo settings saved.");
+    } catch (err) {
+      setBrevoError(err instanceof Error ? err.message : "Failed to save Brevo settings.");
+    } finally {
+      setBrevoSaving(false);
+    }
+  }
+
+  async function handleBrevoTest() {
+    setBrevoTesting(true);
+    setBrevoMessage("");
+    setBrevoError("");
+
+    try {
+      const result = await testAdminBrevoConnection();
+      setBrevo(result.brevo);
+      setBrevoMessage(result.message || "Test email sent.");
+    } catch (err) {
+      setBrevoError(err instanceof Error ? err.message : "Brevo test failed.");
+    } finally {
+      setBrevoTesting(false);
     }
   }
 
@@ -255,6 +308,86 @@ export default function AdminSettingsPage() {
         <button type="submit" disabled={saving} className="btn-primary disabled:opacity-50">
           {saving ? "Saving..." : "Save Settings"}
         </button>
+      </form>
+
+      <form key={brevo ? "brevo-loaded" : "brevo-loading"} onSubmit={handleBrevoSubmit} className="bg-surface border border-border rounded-xl p-6 shadow-sm space-y-4 max-w-3xl mt-8">
+        <div>
+          <h2 className="text-xl font-semibold text-foreground">Brevo Email Marketing</h2>
+          <p className="text-sm text-muted mt-1">
+            Connect CRM email marketing to Brevo. Add your API key to <code className="text-xs">BREVO_API_KEY</code> in the backend <code className="text-xs">.env</code> file.
+          </p>
+        </div>
+
+        {brevoMessage && <p className="text-green-600">{brevoMessage}</p>}
+        {brevoError && <p className="text-red-600">{brevoError}</p>}
+
+        <label className="flex items-center gap-2 text-sm">
+          <input name="brevo_enabled" type="checkbox" defaultChecked={brevo?.enabled} />
+          Enable Brevo for CRM email marketing
+        </label>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Brevo List ID</label>
+            <input
+              name="brevo_list_id"
+              type="number"
+              min={1}
+              defaultValue={brevo?.list_id ?? ""}
+              placeholder="Optional contact list ID"
+              className="w-full border border-border rounded-lg px-4 py-2"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Sender Email</label>
+            <input
+              name="brevo_sender_email"
+              type="email"
+              defaultValue={brevo?.sender_email || settings.email || ""}
+              placeholder="Verified sender in Brevo"
+              className="w-full border border-border rounded-lg px-4 py-2"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Sender Name</label>
+            <input
+              name="brevo_sender_name"
+              defaultValue={brevo?.sender_name || settings.company_name || ""}
+              className="w-full border border-border rounded-lg px-4 py-2"
+            />
+          </div>
+        </div>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input name="brevo_sync_contacts" type="checkbox" defaultChecked={brevo?.sync_contacts ?? true} />
+          Sync customers to Brevo when they register or are created
+        </label>
+
+        <div className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm">
+          <p>
+            Status:{" "}
+            <span className={brevo?.configured ? "text-green-700 font-medium" : "text-amber-700 font-medium"}>
+              {brevo?.configured ? "Connected" : "Not configured"}
+            </span>
+          </p>
+          <p className="text-muted mt-1">
+            API key {brevo?.api_key_set ? "detected" : "missing"} · Sender {brevo?.sender_email || "not set"}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <button type="submit" disabled={brevoSaving} className="btn-primary disabled:opacity-50">
+            {brevoSaving ? "Saving..." : "Save Brevo Settings"}
+          </button>
+          <button
+            type="button"
+            onClick={handleBrevoTest}
+            disabled={brevoTesting || !brevo?.configured}
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium disabled:opacity-50"
+          >
+            {brevoTesting ? "Sending..." : "Send Test Email"}
+          </button>
+        </div>
       </form>
     </div>
   );
